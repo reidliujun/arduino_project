@@ -1,0 +1,45 @@
+extends layout
+
+block content
+  if (typeof(data) != null)
+    != "<script type='text/javascript'>\n"
+    != "var year = " + year + ";\n"
+    != "var month = " + month + ";\n"
+    != "var day = " + day + ";\n"
+    != "var pins = [\n"
+    each d, i in data
+      != "[new Date(" + d.created.getTime() + "), " + d.value + "],\n"
+    != "];\n</script>"
+
+  script(type="text/javascript", src="https://www.google.com/jsapi")
+  script(type="text/javascript").
+    google.load("visualization", "1", {packages:["corechart"]});
+    var data = pins;
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+        
+        var dataTable = new google.visualization.DataTable();
+        dataTable.addColumn('datetime', 'Time');
+        dataTable.addColumn('number', 'LDR Value');
+            for (var i = 0, n = data.length; i < n; i++) {
+                dataTable.addRow([data[i][0], data[i][1]]);
+            }
+        
+        var options = {
+          title: 'Brightness value over time',
+          hAxis: {title: 'LDR values ' + year + "-" + month + "-" + day,  titleTextStyle: {color: '#333'}},
+          vAxis: {minValue: 0}
+        };
+
+        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+        chart.draw(dataTable, options);
+    }
+
+  h1 #{title}
+  p Current brightness is <em>#{brightness}</em>
+  p LED status is <em>#{led_status}</em>
+
+  div(style="width:900px")
+    #chart_div(style="width:900px; height=500px;")
+    a(href="/?date=#{nextDay}", style="float:right") Next day #{nextDay}
+    a(href="/?date=#{prevDay}", style="float:left") Previous day #{prevDay}
